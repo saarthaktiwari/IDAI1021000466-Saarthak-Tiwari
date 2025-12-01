@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import datetime as dt
 from dateutil import parser
-import random, io, os, json
+import io, os, json
 from PIL import Image
 import turtle
 from fpdf import FPDF
@@ -206,4 +206,5 @@ with left:
             else:
                 st.write(f"Taken at {m.get('taken_at','')}")
         with col3:
-            if st.button("🗑️ Delete", key=f"del_{
+            if st.button("🗑️ Delete", key=f"del_{m['id']}"):
+               
