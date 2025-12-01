@@ -235,4 +235,4 @@ with left:
     st.subheader("✨ Add a new reminder")
     with st.form("add_form", clear_on_submit=True):
         name = st.text_input("Medicine name")
-        time_str = st.text_input("Scheduled time (HH
+        time_str = st.text_input("Scheduled time (HH:MM)", placeholder="08:00")
