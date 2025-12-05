@@ -70,13 +70,14 @@ if not st.session_state.username:
     with st.form("login_form"):
         name = st.text_input("Please enter your name to begin:")
         submitted = st.form_submit_button("Continue")
-        if submitted:
-            if name.strip():
-                st.session_state.username = name.strip()
-                st.success(f"Welcome, {st.session_state.username}! Let’s set you up.")
-                st.experimental_rerun()
-            else:
-                st.warning("Name can't be empty.")
+
+    if submitted:
+        if name.strip():
+            st.session_state.username = name.strip()
+            st.success(f"Welcome, {st.session_state.username}! Let’s set you up.")
+            st.rerun()   # <-- fixed here
+        else:
+            st.warning("Name can't be empty.")
     st.stop()
 
 # ----------------------------
@@ -243,107 +244,4 @@ def export_today_pdf():
         pdf.cell(200, 10, txt="No medicines added.", ln=True)
     pdf_output = pdf.output(dest="S").encode("latin-1")
     st.download_button("⬇️ Download today's schedule (PDF)", pdf_output,
-                       file_name="medtimer_today.pdf", mime="application/pdf")
-
-# ----------------------------
-# UI
-# ----------------------------
-st.title(f"💊 MedTimer — Welcome back, {st.session_state.username}")
-st.write(f"📅 Today: {dt.date.today().strftime('%A, %d %B %Y')}")
-st.caption("A calm, encouraging space to keep your medicines on track.")
-
-left, right = st.columns([0.62, 0.38])
-
-# Left column
-with left:
-    st.subheader("✨ Add a new reminder to keep you on track")
-    with st.form("add_form", clear_on_submit=True):
-        name = st.text_input("Medicine name")
-        time_str = st.text_input("Scheduled time (HH:MM)", placeholder="08:00")
-        remind_min = st.number_input("Remind minutes before", min_value=0, max_value=120, value=15, step=5)
-        submitted = st.form_submit_button("Add")
-        if submitted:
-            if name.strip() and time_str.strip():
-                add_medicine(name, time_str, remind_min)
-                st.success("✅ Medicine added! You're one step closer to staying on track.")
-            else:
-                st.warning("Please fill in both the name and time.")
-
-    update_all_statuses()
-
-    st.subheader("📋 Today's medicines — you're doing great!")
-    if not st.session_state.meds:
-        st.info("No medicines added yet. Add your first reminder above.")
-    else:
-        for m in sorted(st.session_state.meds, key=lambda x: parse_hhmm(x["time_str"])):
-            col1, col2, col3 = st.columns([0.52, 0.24, 0.24])
-            color = status_color(m["status"])
-
-            with col1:
-                st.markdown(
-                    f"<div style='display:inline-block; padding:6px 10px; border-radius:16px; "
-                    f"background:{color}; color:white; font-weight:600'>{m['name']} • {m['time_str']} • {m['status']}</div>",
-                    unsafe_allow_html=True
-                )
-                if m.get("taken_at"):
-                    st.caption(f"Taken at {m['taken_at']}")
-
-            with col2:
-                if m["status"] != "taken":
-                    if st.button("Mark taken ✅", key=f"take_{m['id']}"):
-                        mark_taken(m["id"])
-                        st.success("Nice work! Dose recorded.")
-                else:
-                    st.write("✅ Taken")
-
-            with col3:
-                with st.expander("Edit / Delete", expanded=False):
-                    new_name = st.text_input("Name", value=m["name"], key=f"en_{m['id']}")
-                    new_time = st.text_input("Time (HH:MM)", value=m["time_str"], key=f"et_{m['id']}")
-                    new_remind = st.number_input("Remind (min)", min_value=0, max_value=120,
-                                                 value=int(m["remind_min"]), step=5, key=f"er_{m['id']}")
-                    c1, c2 = st.columns(2)
-                    with c1:
-                        if st.button("Save changes", key=f"save_{m['id']}"):
-                            if new_name.strip() and new_time.strip():
-                                edit_medicine(m["id"], new_name, new_time, int(new_remind))
-                                st.success("Updated successfully.")
-                            else:
-                                st.warning("Please provide both name and time.")
-                    with c2:
-                        if st.button("🗑️ Delete", key=f"del_{m['id']}"):
-                            delete_medicine(m["id"])
-                            st.warning("Deleted.")
-
-# Right column
-with right:
-    scheduled, taken, pct_today = adherence_today()
-    st.metric(label="Today's adherence", value=f"{pct_today}%", delta=f"{taken}/{scheduled} taken")
-
-    # Snapshot for weekly stats
-    record_daily_history()
-
-    df_week, weekly_pct = weekly_adherence()
-    streak = current_streak()
-
-    st.metric(label="Weekly adherence (avg)", value=f"{weekly_pct}%")
-    st.metric(label="Streak (days at 100%)", value=f"{streak}")
-
-    st.subheader("📈 Weekly overview")
-    st.dataframe(df_week, height=260, use_container_width=True)
-
-    st.subheader("⬇️ Export")
-    export_today_csv()
-    export_today_pdf()
-
-    st.subheader("💬 Encouragement")
-    tip = tip_for_status(pct_today)
-    st.info(tip)
-    st.success(encouragement_for(max(pct_today, weekly_pct)))
-
-    if pct_today == 100 and scheduled > 0:
-        st.balloons()
-
-# Footer
-st.markdown("---")
-st.caption("Made with care to support your health journey 💖")
+                       file_name="med
