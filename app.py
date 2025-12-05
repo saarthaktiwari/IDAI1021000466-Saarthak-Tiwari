@@ -55,20 +55,29 @@ def init_state():
         st.session_state.history = {}
     if "id_counter" not in st.session_state:
         st.session_state.id_counter = 1
+    if "_do_reset" not in st.session_state:
+        st.session_state._do_reset = False
 
 init_state()
 load_data()
 
 # ----------------------------
-# Reset function
+# Reset logic
 # ----------------------------
+def trigger_reset():
+    st.session_state._do_reset = True
+
 def reset_progress():
     st.session_state.username = None
     st.session_state.meds = []
     st.session_state.history = {}
     st.session_state.id_counter = 1
+    st.session_state._do_reset = False
     if os.path.exists(DATA_FILE):
         os.remove(DATA_FILE)
+
+if st.session_state._do_reset:
+    reset_progress()
     st.rerun()
 
 # ----------------------------
@@ -247,11 +256,9 @@ def export_today_pdf():
     pdf = FPDF()
     pdf.add_page()
     pdf.set_font("Arial", size=12)
-    pdf.cell(200, 10, txt="MedTimer - Today's Schedule", ln=True, align="C")
-    pdf.ln(5)
-    if st.session_state.meds:
+    pdf.cell(200, 10, txt="MedTimer - Today's Schedule", ln=True
         for m in sorted(st.session_state.meds, key=lambda x: parse_hhmm(x["time_str"])):
-            pdf.cell(200, 10, txt=f"{m['name']} at {m['time_str']} → {m['status']}", ln=True)
+        pdf.cell(200, 10, txt=f"{m['name']} at {m['time_str']} → {m['status']}", ln=True)
     else:
         pdf.cell(200, 10, txt="No medicines added.", ln=True)
     pdf_output = pdf.output(dest="S").encode("latin-1")
@@ -265,8 +272,8 @@ st.title(f"💊 MedTimer — Welcome back, {st.session_state.username}")
 st.write(f"📅 Today: {dt.date.today().strftime('%A, %d %B %Y')}")
 st.caption("A calm, encouraging space to keep your medicines on track.")
 
-# Reset button at the top-right
-st.sidebar.button("🔄 Reset Progress / Log out", on_click=reset_progress)
+# Reset button in sidebar
+st.sidebar.button("🔄 Reset Progress / Log out", on_click=trigger_reset)
 
 left, right = st.columns([0.62, 0.38])
 
