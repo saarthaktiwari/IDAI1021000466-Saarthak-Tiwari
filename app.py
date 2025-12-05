@@ -259,7 +259,7 @@ def export_today_pdf():
     pdf.cell(200, 10, txt="MedTimer - Today's Schedule", ln=True, align="C")
     pdf.ln(5)
     if st.session_state.meds:
-        for m in sorted(st.session_state.meds, key=lambda x: parse_hhmm
+        for m in sorted(st.session_state.meds, key=lambda x: parse_hhmm)
     if st.session_state.meds:
         for m in sorted(st.session_state.meds, key=lambda x: parse_hhmm(x["time_str"])):
             line = f"{m['name']} at {m['time_str']} → {m['status']}"
